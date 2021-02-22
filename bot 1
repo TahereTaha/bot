@@ -1,0 +1,110 @@
+import pygame
+import sys
+import time
+
+
+pygame.init()
+screean = pygame.display.set_mode((800, 800))
+clock = pygame.time.Clock()
+
+
+class Cell:
+
+    def __init__(self, state):
+        self.state = state
+        self.new_state = state
+        self.cell_surfase = pygame.Surface((19, 19))
+        self.cell_surfase.fill(pygame.Color(0, 0, 0))
+        self.local_population = 0
+
+    def print_itself(self, xp, yp):
+        if self.state:
+            self.cell_surfase.fill(pygame.Color(255, 255, 255))
+        else:
+            self.cell_surfase.fill(pygame.Color(0, 0, 0))
+
+        screean.blit(self.cell_surfase, (xp * 20, yp * 20))
+
+    def get_state(self):
+        return self.state
+
+    def get_new_state(self):
+        self.new_state = not self.state
+
+    def change_state(self):
+        self.state = self.new_state
+
+    def define_state(self, xp, yp):
+        self.local_population = 0
+        if not(xp == 39) and not(yp == 0):
+            if Map[(xp+1)][(yp-1)].get_state():
+                self.local_population += 1
+
+        if not(xp == 0) and not(yp == 0):
+            if Map[(xp - 1)][(yp - 1)].get_state():
+                self.local_population += 1
+
+        if not(xp == 0) and not(yp == 39):
+            if Map[xp-1][yp+1].get_state():
+                self.local_population += 1
+
+        if not(xp == 39) and not(yp == 39):
+            if Map[xp+1][yp+1].get_state():
+                self.local_population += 1
+
+        if not(xp == 0):
+            if Map[xp - 1][yp].get_state():
+                self.local_population += 1
+
+        if not(yp == 0):
+            if Map[xp][yp-1].get_state():
+                self.local_population += 1
+
+        if not(xp == 39):
+            if Map[xp+1][yp].get_state():
+                self.local_population += 1
+
+        if not(yp == 39):
+            if Map[xp][yp+1].get_state():
+                self.local_population += 1
+
+        if not self.state and self.local_population == 3:
+            self.new_state = True
+        elif self.state and self.local_population != 2 and self.local_population != 3:
+            self.new_state = False
+
+
+Map = [[Cell(False) for _ in range(40)]for _ in range(40)]
+
+
+screean.fill(pygame.Color(175, 175, 175))
+
+pause_exec = True
+
+while True:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            sys.exit()
+        if event.type == pygame.KEYDOWN:
+            pause_exec = not pause_exec
+        if pygame.mouse.get_pressed(num_buttons=3)[0]:
+            print(pygame.mouse.get_pressed(num_buttons=3)[0])
+            posY, posX = pygame.mouse.get_pos()
+            celX, celY = (posX // 20),  (posY // 20)
+            Map[celY][celX].get_new_state()
+            Map[celY][celX].change_state()
+            Map[celY][celX].print_itself(celY, celX)
+            pygame.display.update()
+            time.sleep(0)
+
+    if pause_exec:
+        time.sleep(0.04)
+        for y in range(40):
+            for x in range(40):
+                Map[y][x].print_itself(y, x)
+                Map[y][x].define_state(y, x)
+        for y in range(40):
+            for x in range(40):
+                Map[y][x].change_state()
+        pygame.display.update()
